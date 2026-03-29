@@ -31,11 +31,11 @@ class MyApp extends StatelessWidget {
       routes: [
         GoRoute(
           path: '/',
-          builder: (context, state) => const MainNavigationWrapper(child: PostsPage(), title: 'Posts'),
+          builder: (context, state) => const MainNavigationWrapper(title: 'Posts', child: PostsPage()),
         ),
         GoRoute(
           path: '/audio',
-          builder: (context, state) => const MainNavigationWrapper(child: AudioLibraryPage(), title: 'Audio Library'),
+          builder: (context, state) => const MainNavigationWrapper(title: 'Audio Library', child: AudioLibraryPage()),
         ),
         GoRoute(
           path: '/login',
@@ -49,7 +49,7 @@ class MyApp extends StatelessWidget {
             }
             return null;
           },
-          builder: (context, state) => const MainNavigationWrapper(child: AdminDashboardPage(), title: 'Admin Dashboard'),
+          builder: (context, state) => const MainNavigationWrapper(title: 'Admin Dashboard', child: AdminDashboardPage()),
         ),
       ],
     );
