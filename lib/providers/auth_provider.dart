@@ -3,23 +3,23 @@ import '../services/api_service.dart';
 
 class AuthProvider extends ChangeNotifier {
   final ApiService _apiService = ApiService();
+  String? _token;
   bool _isAuthenticated = false;
   bool get isAuthenticated => _isAuthenticated;
+  String? get token => _token;
 
   Future<void> checkAuthStatus() async {
-    final token = await _apiService.getToken();
-    _isAuthenticated = token != null;
+    _token = await _apiService.getToken();
+    _isAuthenticated = _token != null;
     notifyListeners();
   }
 
   Future<bool> login(String username, String password) async {
     try {
-      final response = await _apiService.post('/login', {
-        'username': username,
-        'password': password,
-      });
+      final response = await _apiService.login(username, password);
 
       if (response.statusCode == 200) {
+        _token = await _apiService.getToken();
         _isAuthenticated = true;
         notifyListeners();
         return true;
@@ -32,6 +32,7 @@ class AuthProvider extends ChangeNotifier {
 
   Future<void> logout() async {
     await _apiService.clearToken();
+    _token = null;
     _isAuthenticated = false;
     notifyListeners();
   }

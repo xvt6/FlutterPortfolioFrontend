@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ApiService {
-  final String baseUrl = 'https://api.example.com'; // Replace with real base URL
+  static const String baseUrl = String.fromEnvironment('BACKEND_URL', defaultValue: 'http://localhost:5023');
   static const String tokenKey = 'admin_token';
 
   Future<String?> getToken() async {
@@ -21,12 +21,28 @@ class ApiService {
     await prefs.remove(tokenKey);
   }
 
-  void _updateTokenFromResponse(http.Response response) {
-    // Assuming backend returns token in 'X-Token' header for sliding session
-    final newToken = response.headers['x-token'];
+  Future<void> _updateTokenFromResponse(http.Response response) async {
+    // Backend returns token in 'X-New-Token' header for sliding session
+    final newToken = response.headers['x-new-token'];
     if (newToken != null) {
-      saveToken(newToken);
+      await saveToken(newToken);
     }
+  }
+
+  Future<http.Response> login(String username, String password) async {
+    final response = await post('/api/auth/login', {
+      'username': username,
+      'password': password,
+    }, requireAuth: false);
+
+    if (response.statusCode == 200) {
+      final body = jsonDecode(response.body);
+      final token = body['token'];
+      if (token != null) {
+        await saveToken(token);
+      }
+    }
+    return response;
   }
 
   Future<http.Response> get(String endpoint, {bool requireAuth = false}) async {
@@ -40,7 +56,7 @@ class ApiService {
 
     final response = await http.get(Uri.parse('$baseUrl$endpoint'), headers: headers);
     if (requireAuth) {
-      _updateTokenFromResponse(response);
+      await _updateTokenFromResponse(response);
     }
     return response;
   }
@@ -60,8 +76,8 @@ class ApiService {
       body: jsonEncode(body),
     );
 
-    if (requireAuth || endpoint == '/login') {
-      _updateTokenFromResponse(response);
+    if (requireAuth || endpoint == '/api/Auth/login') {
+      await _updateTokenFromResponse(response);
     }
     return response;
   }
@@ -82,9 +98,9 @@ class ApiService {
 
     final response = await request.send();
     // For streamed responses, getting the sliding token from headers is similar
-    final newToken = response.headers['x-token'];
+    final newToken = response.headers['x-new-token'];
     if (newToken != null) {
-      saveToken(newToken);
+      await saveToken(newToken);
     }
     return response;
   }
@@ -100,7 +116,7 @@ class ApiService {
 
     final response = await http.delete(Uri.parse('$baseUrl$endpoint'), headers: headers);
     if (requireAuth) {
-      _updateTokenFromResponse(response);
+      await _updateTokenFromResponse(response);
     }
     return response;
   }
