@@ -1,22 +1,31 @@
 class Audio {
   final int id;
-  final String fileName;
-  final String url;
-  final DateTime uploadedAt;
+  final String displayName;
+  final String description;
+  final String fileIdentifier;
+  final double? bpm;
+  final String? musicKey;
+  final List<String> vibes;
 
   Audio({
     required this.id,
-    required this.fileName,
-    required this.url,
-    required this.uploadedAt,
+    required this.displayName,
+    required this.description,
+    required this.fileIdentifier,
+    this.bpm,
+    this.musicKey,
+    required this.vibes,
   });
 
   factory Audio.fromJson(Map<String, dynamic> json) {
     return Audio(
       id: json['id'],
-      fileName: json['file_name'],
-      url: json['url'],
-      uploadedAt: DateTime.parse(json['uploaded_at']),
+      displayName: json['displayName'],
+      description: json['description'],
+      fileIdentifier: json['fileIdentifier'],
+      bpm: (json['bpm'] as num?)?.toDouble(),
+      musicKey: json['musicKey'],
+      vibes: List<String>.from(json['vibes'] ?? []),
     );
   }
 }

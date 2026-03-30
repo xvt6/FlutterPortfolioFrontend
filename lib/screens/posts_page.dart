@@ -23,7 +23,7 @@ class _PostsPageState extends State<PostsPage> {
 
   Future<void> _fetchPosts() async {
     try {
-      final response = await _apiService.get('/posts');
+      final response = await _apiService.get('/api/Posts');
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(response.body);
         if (!mounted) return;
@@ -52,10 +52,42 @@ class _PostsPageState extends State<PostsPage> {
       itemCount: _posts.length,
       itemBuilder: (context, index) {
         final post = _posts[index];
-        return ListTile(
-          title: Text(post.title),
-          subtitle: Text(post.content),
-          trailing: Text(post.createdAt.toIso8601String().split('T')[0]),
+        return Card(
+          margin: const EdgeInsets.all(8.0),
+          child: ExpansionTile(
+            title: Text(post.title, style: const TextStyle(fontWeight: FontWeight.bold)),
+            subtitle: Text(post.content),
+            trailing: Text(post.createdAt.toIso8601String().split('T')[0]),
+            children: [
+              if (post.audioFiles.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('Linked Audio:', style: TextStyle(fontWeight: FontWeight.bold)),
+                      ...post.audioFiles.map((audio) => ListTile(
+                            leading: const Icon(Icons.audiotrack),
+                            title: Text(audio.displayName),
+                            subtitle: Text(audio.description),
+                            trailing: IconButton(
+                              icon: const Icon(Icons.play_arrow),
+                              onPressed: () {
+                                final url = '${ApiService.baseUrl}/api/Audio/${audio.fileIdentifier}/mp3';
+                                // Logic to play audio
+                              },
+                            ),
+                          )),
+                    ],
+                  ),
+                )
+              else
+                const Padding(
+                  padding: EdgeInsets.all(16.0),
+                  child: Text('No audio files linked to this post.'),
+                ),
+            ],
+          ),
         );
       },
     );

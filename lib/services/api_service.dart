@@ -30,7 +30,7 @@ class ApiService {
   }
 
   Future<http.Response> login(String username, String password) async {
-    final response = await post('/api/auth/login', {
+    final response = await post('/api/Auth/login', {
       'username': username,
       'password': password,
     }, requireAuth: false);
@@ -61,7 +61,7 @@ class ApiService {
     return response;
   }
 
-  Future<http.Response> post(String endpoint, Map<String, dynamic> body, {bool requireAuth = false}) async {
+  Future<http.Response> post(String endpoint, dynamic body, {bool requireAuth = false}) async {
     final Map<String, String> headers = {'Content-Type': 'application/json'};
     if (requireAuth) {
       final token = await getToken();
@@ -82,16 +82,46 @@ class ApiService {
     return response;
   }
 
-  Future<http.StreamedResponse> uploadWav(String endpoint, List<int> fileBytes, String fileName) async {
+  Future<http.Response> put(String endpoint, dynamic body, {bool requireAuth = true}) async {
+    final Map<String, String> headers = {'Content-Type': 'application/json'};
+    if (requireAuth) {
+      final token = await getToken();
+      if (token != null) {
+        headers['Authorization'] = 'Bearer $token';
+      }
+    }
+
+    final response = await http.put(
+      Uri.parse('$baseUrl$endpoint'),
+      headers: headers,
+      body: jsonEncode(body),
+    );
+
+    if (requireAuth) {
+      await _updateTokenFromResponse(response);
+    }
+    return response;
+  }
+
+  Future<http.StreamedResponse> uploadWav(
+    String endpoint,
+    List<int> fileBytes,
+    String fileName, {
+    Map<String, String>? fields,
+  }) async {
     final token = await getToken();
     final request = http.MultipartRequest('POST', Uri.parse('$baseUrl$endpoint'));
-    
+
     if (token != null) {
       request.headers['Authorization'] = 'Bearer $token';
     }
 
+    if (fields != null) {
+      request.fields.addAll(fields);
+    }
+
     request.files.add(http.MultipartFile.fromBytes(
-      'file',
+      'File', // Backend expects 'File' based on CreateAudioDto
       fileBytes,
       filename: fileName,
     ));

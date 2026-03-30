@@ -110,14 +110,15 @@ class MainNavigationWrapper extends StatelessWidget {
                 context.go('/audio');
               },
             ),
-            ListTile(
-              leading: const Icon(Icons.admin_panel_settings),
-              title: const Text('Admin'),
-              onTap: () {
-                Navigator.pop(context);
-                context.go('/admin');
-              },
-            ),
+            if (auth.isAuthenticated)
+              ListTile(
+                leading: const Icon(Icons.admin_panel_settings),
+                title: const Text('Admin'),
+                onTap: () {
+                  Navigator.pop(context);
+                  context.go('/admin');
+                },
+              ),
           ],
         ),
       ),

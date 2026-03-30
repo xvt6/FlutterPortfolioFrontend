@@ -23,7 +23,7 @@ class _AudioLibraryPageState extends State<AudioLibraryPage> {
 
   Future<void> _fetchAudios() async {
     try {
-      final response = await _apiService.get('/audios');
+      final response = await _apiService.get('/api/Audio');
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(response.body);
         if (!mounted) return;
@@ -54,12 +54,13 @@ class _AudioLibraryPageState extends State<AudioLibraryPage> {
         final audio = _audios[index];
         return ListTile(
           leading: const Icon(Icons.audiotrack),
-          title: Text(audio.fileName),
-          subtitle: Text('Uploaded: ${audio.uploadedAt.toIso8601String().split('T')[0]}'),
+          title: Text(audio.displayName),
+          subtitle: Text(audio.description),
           trailing: IconButton(
             icon: const Icon(Icons.play_arrow),
             onPressed: () {
-              // Logic to play audio from audio.url
+              final url = '${ApiService.baseUrl}/api/Audio/${audio.fileIdentifier}/mp3';
+              // Logic to play audio from url
             },
           ),
         );
