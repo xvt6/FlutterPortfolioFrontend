@@ -2,8 +2,8 @@ import 'package:flutter/foundation.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:audio_session/audio_session.dart';
 import 'package:rxdart/rxdart.dart';
-import '../models/audio.dart';
-import '../services/api_service.dart';
+import '../../../core/models/audio.dart';
+import '../../../core/api/api_service.dart';
 
 class PositionData {
   final Duration position;
@@ -13,13 +13,13 @@ class PositionData {
   PositionData(this.position, this.bufferedPosition, this.duration);
 }
 
-class AudioProvider with ChangeNotifier {
+class AudioPlayerController with ChangeNotifier {
   AudioPlayer? _player;
   final ApiService _apiService = ApiService();
   Audio? _currentAudio;
   bool _isInitialized = false;
 
-  AudioProvider() {
+  AudioPlayerController() {
     _init();
   }
 
@@ -34,7 +34,7 @@ class AudioProvider with ChangeNotifier {
       final session = await AudioSession.instance;
       await session.configure(const AudioSessionConfiguration.music());
     } catch (e) {
-      debugPrint("AudioProvider initialization error: $e");
+      debugPrint("AudioPlayerController initialization error: $e");
     }
   }
 

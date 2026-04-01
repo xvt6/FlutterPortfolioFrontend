@@ -2,14 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:audio_video_progress_bar/audio_video_progress_bar.dart';
 import 'package:just_audio/just_audio.dart';
-import '../providers/audio_provider.dart';
+import '../../features/audio/controllers/audio_player_controller.dart';
 
 class AudioPlayerWidget extends StatelessWidget {
   const AudioPlayerWidget({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final audioProvider = context.watch<AudioProvider>();
+    final audioProvider = context.watch<AudioPlayerController>();
     final currentAudio = audioProvider.currentAudio;
 
     if (!audioProvider.isInitialized || currentAudio == null) {

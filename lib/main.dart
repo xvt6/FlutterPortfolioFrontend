@@ -1,22 +1,41 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
-import 'providers/auth_provider.dart';
-import 'providers/audio_provider.dart';
-import 'widgets/audio_player_widget.dart';
-import 'screens/posts_page.dart';
-import 'screens/audio_library_page.dart';
-import 'screens/login_page.dart';
-import 'screens/admin_dashboard_page.dart';
+import 'features/auth/controllers/auth_provider.dart';
+import 'features/audio/controllers/audio_player_controller.dart';
+import 'features/audio/controllers/audio_library_controller.dart';
+import 'features/posts/controllers/post_list_controller.dart';
+import 'core/api/api_service.dart';
+import 'features/audio/services/audio_service.dart';
+import 'features/posts/services/post_service.dart';
+import 'features/admin/services/vibe_service.dart';
+import 'features/admin/controllers/audio_controller.dart';
+import 'features/admin/controllers/post_controller.dart';
+import 'features/admin/controllers/vibe_controller.dart';
+import 'core/widgets/audio_player_widget.dart';
+import 'features/posts/pages/posts_page.dart';
+import 'features/audio/pages/audio_library_page.dart';
+import 'features/auth/pages/login_page.dart';
+import 'features/admin/pages/admin_dashboard_page.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   final authProvider = AuthProvider();
+  final apiService = ApiService();
+  final audioService = AudioService(apiService);
+  final postService = PostService(apiService);
+  final vibeService = VibeService(apiService);
+
   runApp(
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => authProvider..checkAuthStatus()),
-        ChangeNotifierProvider(create: (_) => AudioProvider()),
+        ChangeNotifierProvider(create: (_) => AudioPlayerController()),
+        ChangeNotifierProvider(create: (_) => AudioLibraryController(audioService)),
+        ChangeNotifierProvider(create: (_) => PostListController(postService)),
+        ChangeNotifierProvider(create: (_) => AudioController(audioService)),
+        ChangeNotifierProvider(create: (_) => PostController(postService)),
+        ChangeNotifierProvider(create: (_) => VibeController(vibeService)),
       ],
       child: MyApp(authProvider: authProvider),
     ),
