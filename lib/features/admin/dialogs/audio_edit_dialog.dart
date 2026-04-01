@@ -21,7 +21,6 @@ class AudioEditDialog extends StatefulWidget {
 class _AudioEditDialogState extends State<AudioEditDialog> {
   late TextEditingController _descriptionController;
   late TextEditingController _bpmController;
-  late TextEditingController _vibesController;
   String? _selectedMusicKey;
   final Set<String> _selectedVibes = {};
   final _formKey = GlobalKey<FormState>();
@@ -32,7 +31,6 @@ class _AudioEditDialogState extends State<AudioEditDialog> {
     final isSingle = widget.targetAudios.length == 1;
     _descriptionController = TextEditingController(text: isSingle ? widget.targetAudios.first.description : '');
     _bpmController = TextEditingController(text: isSingle ? (widget.targetAudios.first.bpm?.toStringAsFixed(2) ?? '') : '');
-    _vibesController = TextEditingController();
     _selectedMusicKey = isSingle ? widget.targetAudios.first.musicKey : null;
     if (isSingle) {
       _selectedVibes.addAll(widget.targetAudios.first.vibes);
@@ -43,7 +41,6 @@ class _AudioEditDialogState extends State<AudioEditDialog> {
   void dispose() {
     _descriptionController.dispose();
     _bpmController.dispose();
-    _vibesController.dispose();
     super.dispose();
   }
 
@@ -128,13 +125,6 @@ class _AudioEditDialogState extends State<AudioEditDialog> {
                   }).toList(),
                 ),
               const SizedBox(height: 8),
-              TextFormField(
-                controller: _vibesController,
-                decoration: const InputDecoration(
-                  labelText: 'Add New Vibes (comma-separated)',
-                  hintText: 'e.g. moody, chill',
-                ),
-              ),
             ],
           ),
         ),
@@ -147,13 +137,7 @@ class _AudioEditDialogState extends State<AudioEditDialog> {
         ElevatedButton(
           onPressed: () {
             if (_formKey.currentState!.validate()) {
-              final newVibes = _vibesController.text
-                  .split(',')
-                  .map((v) => v.trim())
-                  .where((v) => v.isNotEmpty)
-                  .toList();
-              
-              final allVibes = {..._selectedVibes, ...newVibes}.toList();
+              final allVibes = _selectedVibes.toList();
 
               widget.onUpdate({
                 'description': _descriptionController.text.isNotEmpty ? _descriptionController.text : null,
