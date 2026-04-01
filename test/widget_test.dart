@@ -8,19 +8,27 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:android_studio/main.dart';
 import 'package:android_studio/providers/auth_provider.dart';
+import 'package:android_studio/providers/audio_provider.dart';
 
 import 'package:provider/provider.dart';
 
 void main() {
   testWidgets('App smoke test', (WidgetTester tester) async {
     final authProvider = AuthProvider();
+    final audioProvider = AudioProvider();
     // Build our app and trigger a frame.
     await tester.pumpWidget(
-      ChangeNotifierProvider<AuthProvider>.value(
-        value: authProvider,
+      MultiProvider(
+        providers: [
+          ChangeNotifierProvider<AuthProvider>.value(value: authProvider),
+          ChangeNotifierProvider<AudioProvider>.value(value: audioProvider),
+        ],
         child: MyApp(authProvider: authProvider),
       ),
     );
+
+    // Wait for the initialization timer in AudioProvider
+    await tester.pump(Duration.zero);
 
     // Verify that our app starts on the Posts page.
     expect(find.text('Posts'), findsAtLeast(1));

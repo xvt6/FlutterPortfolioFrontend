@@ -2,17 +2,21 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'providers/auth_provider.dart';
+import 'providers/audio_provider.dart';
+import 'widgets/audio_player_widget.dart';
 import 'screens/posts_page.dart';
 import 'screens/audio_library_page.dart';
 import 'screens/login_page.dart';
 import 'screens/admin_dashboard_page.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
   final authProvider = AuthProvider();
   runApp(
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => authProvider..checkAuthStatus()),
+        ChangeNotifierProvider(create: (_) => AudioProvider()),
       ],
       child: MyApp(authProvider: authProvider),
     ),
@@ -123,6 +127,7 @@ class MainNavigationWrapper extends StatelessWidget {
         ),
       ),
       body: child,
+      bottomNavigationBar: const AudioPlayerWidget(),
     );
   }
 }

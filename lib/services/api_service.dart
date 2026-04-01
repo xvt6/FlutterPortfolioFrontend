@@ -45,7 +45,7 @@ class ApiService {
     return response;
   }
 
-  Future<http.Response> get(String endpoint, {bool requireAuth = false}) async {
+  Future<http.Response> get(String endpoint, {Map<String, dynamic>? queryParams, bool requireAuth = false}) async {
     final Map<String, String> headers = {};
     if (requireAuth) {
       final token = await getToken();
@@ -54,14 +54,15 @@ class ApiService {
       }
     }
 
-    final response = await http.get(Uri.parse('$baseUrl$endpoint'), headers: headers);
+    final uri = _buildUri(endpoint, queryParams);
+    final response = await http.get(uri, headers: headers);
     if (requireAuth) {
       await _updateTokenFromResponse(response);
     }
     return response;
   }
 
-  Future<http.Response> post(String endpoint, dynamic body, {bool requireAuth = false}) async {
+  Future<http.Response> post(String endpoint, dynamic body, {Map<String, dynamic>? queryParams, bool requireAuth = false}) async {
     final Map<String, String> headers = {'Content-Type': 'application/json'};
     if (requireAuth) {
       final token = await getToken();
@@ -70,8 +71,9 @@ class ApiService {
       }
     }
 
+    final uri = _buildUri(endpoint, queryParams);
     final response = await http.post(
-      Uri.parse('$baseUrl$endpoint'),
+      uri,
       headers: headers,
       body: jsonEncode(body),
     );
@@ -82,7 +84,7 @@ class ApiService {
     return response;
   }
 
-  Future<http.Response> put(String endpoint, dynamic body, {bool requireAuth = true}) async {
+  Future<http.Response> put(String endpoint, dynamic body, {Map<String, dynamic>? queryParams, bool requireAuth = true}) async {
     final Map<String, String> headers = {'Content-Type': 'application/json'};
     if (requireAuth) {
       final token = await getToken();
@@ -91,8 +93,9 @@ class ApiService {
       }
     }
 
+    final uri = _buildUri(endpoint, queryParams);
     final response = await http.put(
-      Uri.parse('$baseUrl$endpoint'),
+      uri,
       headers: headers,
       body: jsonEncode(body),
     );
@@ -107,17 +110,29 @@ class ApiService {
     String endpoint,
     List<int> fileBytes,
     String fileName, {
-    Map<String, String>? fields,
+    Map<String, dynamic>? fields,
+    Map<String, dynamic>? queryParams,
   }) async {
     final token = await getToken();
-    final request = http.MultipartRequest('POST', Uri.parse('$baseUrl$endpoint'));
+    final uri = _buildUri(endpoint, queryParams);
+    final request = http.MultipartRequest('POST', uri);
 
     if (token != null) {
       request.headers['Authorization'] = 'Bearer $token';
     }
 
     if (fields != null) {
-      request.fields.addAll(fields);
+      fields.forEach((key, value) {
+        if (value is Iterable) {
+          for (var item in value) {
+            if (item != null) {
+              request.files.add(http.MultipartFile.fromString(key, item.toString()));
+            }
+          }
+        } else if (value != null) {
+          request.fields[key] = value.toString();
+        }
+      });
     }
 
     request.files.add(http.MultipartFile.fromBytes(
@@ -135,7 +150,7 @@ class ApiService {
     return response;
   }
 
-  Future<http.Response> delete(String endpoint, {bool requireAuth = true}) async {
+  Future<http.Response> delete(String endpoint, {Map<String, dynamic>? queryParams, bool requireAuth = true}) async {
     final Map<String, String> headers = {};
     if (requireAuth) {
       final token = await getToken();
@@ -144,10 +159,33 @@ class ApiService {
       }
     }
 
-    final response = await http.delete(Uri.parse('$baseUrl$endpoint'), headers: headers);
+    final uri = _buildUri(endpoint, queryParams);
+    final response = await http.delete(uri, headers: headers);
     if (requireAuth) {
       await _updateTokenFromResponse(response);
     }
     return response;
+  }
+
+  String getAudioStreamUrl(String fileIdentifier) {
+    return '$baseUrl/api/audio/stream?fileIdentifier=$fileIdentifier';
+  }
+
+  Uri _buildUri(String endpoint, Map<String, dynamic>? queryParams) {
+    Uri uri = Uri.parse('$baseUrl$endpoint');
+    if (queryParams != null && queryParams.isNotEmpty) {
+      // Dart's Uri queryParameters only accepts Map<String, String> or Map<String, Iterable<String>>.
+      // We'll convert our dynamic values.
+      final Map<String, dynamic> convertedParams = {};
+      queryParams.forEach((key, value) {
+        if (value is Iterable) {
+          convertedParams[key] = value.map((e) => e.toString()).toList();
+        } else if (value != null) {
+          convertedParams[key] = value.toString();
+        }
+      });
+      uri = uri.replace(queryParameters: convertedParams);
+    }
+    return uri;
   }
 }
